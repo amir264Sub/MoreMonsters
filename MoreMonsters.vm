@@ -1,0 +1,9 @@
+[BEGINVDF]
+Comment=More monsters in Gothic 2 NotR
+BaseDir=.\
+VDFName=MoreMonsters.vdf
+[FILES]
+Ninja\MoreMonsters\*.*
+[EXCLUDE]
+[INCLUDES]
+[ENDVDF]
