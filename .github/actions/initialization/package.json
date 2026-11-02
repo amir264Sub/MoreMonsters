@@ -1,0 +1,58 @@
+{
+  "name": "patch-init",
+  "description": "Initializes a patch following issue creation",
+  "version": "1.0.0",
+  "author": "Sören Zapp",
+  "license": "MIT",
+  "homepage": "https://github.com/szapp/patch-template#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/szapp/patch-template.git"
+  },
+  "keywords": [
+    "ci",
+    "gothic",
+    "gothic1",
+    "gothic2",
+    "ninja"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "bundle": "npm run check && npm run package",
+    "coverage": "make-coverage-badge --output-path ./badges/coverage.svg",
+    "format": "biome format --write",
+    "lint": "biome lint --write",
+    "check": "biome check --write",
+    "ci": "biome ci",
+    "package": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "all": "npm run check && npm run test && npm run coverage && npm run package"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/exec": "^3.0.0",
+    "@actions/github": "^9.1.1",
+    "@actions/io": "^3.0.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/node": "^25.8.0",
+    "@vercel/ncc": "^0.38.4",
+    "@vitest/coverage-istanbul": "^5.0.3",
+    "make-coverage-badge": "^1.2.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "volta": {
+    "node": "24.15.0"
+  }
+}

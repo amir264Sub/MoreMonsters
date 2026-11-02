@@ -1,0 +1,993 @@
+import fs from 'node:fs/promises'
+import * as path from 'node:path'
+import * as exec from '@actions/exec'
+import * as io from '@actions/io'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+import type { InputParameters } from './classes.js'
+import * as files from './files.js'
+
+vi.mock('@actions/io')
+vi.mock('@actions/exec')
+vi.mock('node:fs/promises')
+
+const createDirsMock = vi.spyOn(files, 'createDirs')
+const writeContentSrcFilesMock = vi.spyOn(files, 'writeContentSrcFiles')
+const writeInitializationMock = vi.spyOn(files, 'writeInitialization')
+const writeSrcFilesMock = vi.spyOn(files, 'writeSrcFiles')
+const writeOuFilesMock = vi.spyOn(files, 'writeOuFiles')
+const writeAnimFilesMock = vi.spyOn(files, 'writeAnimFiles')
+const writeVmScriptMock = vi.spyOn(files, 'writeVmScript')
+const writeDotFilesMock = vi.spyOn(files, 'writeDotFiles')
+const writeReadmeMock = vi.spyOn(files, 'writeReadme')
+const writeLicenseMock = vi.spyOn(files, 'writeLicense')
+const removeFilesMock = vi.spyOn(files, 'removeFiles')
+
+describe('createDirs', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should create resource directories and Ninja/Content/empty', async () => {
+    const patch: InputParameters = {
+      needsNinja: false,
+      needsContentScripts: true,
+      needsInit: false,
+      name: 'testPatch',
+    } as InputParameters
+    const rscPattern1 = path.join('_work', 'Data', '{DIR}', '_compiled', '.empty')
+    const rscPattern2 = path.join('_work', 'Data', '{DIR}', '.empty')
+
+    await files.createDirs(patch)
+    expect(createDirsMock).toHaveReturned()
+    expect(exec.exec).toHaveBeenCalledTimes(8)
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Anims')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Meshes')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Presets')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'SFX'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'Speech'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Textures')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Worlds')], {
+      silent: true,
+    })
+    expect(io.mkdirP).not.toHaveBeenCalled()
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', path.join('Ninja', 'testPatch', 'Content', '.empty')], {
+      silent: true,
+    })
+  })
+
+  test('should create resource directories and Ninja/Content/', async () => {
+    const patch: InputParameters = {
+      needsNinja: false,
+      needsContentScripts: true,
+      needsInit: true,
+      name: 'testPatch',
+    } as InputParameters
+    const rscPattern1 = path.join('_work', 'Data', '{DIR}', '_compiled', '.empty')
+    const rscPattern2 = path.join('_work', 'Data', '{DIR}', '.empty')
+
+    await files.createDirs(patch)
+    expect(createDirsMock).toHaveReturned()
+    expect(exec.exec).toHaveBeenCalledTimes(7)
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Anims')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Meshes')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Presets')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'SFX'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'Speech'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Textures')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Worlds')], {
+      silent: true,
+    })
+    expect(io.mkdirP).toHaveBeenCalledTimes(1)
+    expect(io.mkdirP).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content'))
+  })
+
+  test('should create resource directories and Ninja/', async () => {
+    const patch: InputParameters = {
+      needsNinja: true,
+      needsContentScripts: false,
+      needsInit: false,
+      name: 'testPatch',
+    } as InputParameters
+    const rscPattern1 = path.join('_work', 'Data', '{DIR}', '_compiled', '.empty')
+    const rscPattern2 = path.join('_work', 'Data', '{DIR}', '.empty')
+
+    await files.createDirs(patch)
+    expect(createDirsMock).toHaveReturned()
+    expect(exec.exec).toHaveBeenCalledTimes(7)
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Anims')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Meshes')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Presets')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'SFX'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'Speech'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Textures')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Worlds')], {
+      silent: true,
+    })
+    expect(io.mkdirP).toHaveBeenCalledTimes(1)
+    expect(io.mkdirP).toHaveBeenCalledWith(path.join('Ninja', 'testPatch'))
+  })
+
+  test('should create resource directories only', async () => {
+    const patch: InputParameters = {
+      needsNinja: false,
+      needsContentScripts: false,
+      needsInit: false,
+      name: 'testPatch',
+    } as InputParameters
+    const rscPattern1 = path.join('_work', 'Data', '{DIR}', '_compiled', '.empty')
+    const rscPattern2 = path.join('_work', 'Data', '{DIR}', '.empty')
+
+    await files.createDirs(patch)
+    expect(createDirsMock).toHaveReturned()
+    expect(exec.exec).toHaveBeenCalledTimes(7)
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Anims')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Meshes')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Presets')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'SFX'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', path.join('Sound', 'Speech'))], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern1.replace('{DIR}', 'Textures')], {
+      silent: true,
+    })
+    expect(exec.exec).toHaveBeenCalledWith('install', ['-Dv', '/dev/null', rscPattern2.replace('{DIR}', 'Worlds')], {
+      silent: true,
+    })
+    expect(io.mkdirP).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeContentSrcFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write all content source files with ikarus and lego', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsContentScripts: true,
+      needsInit: true,
+      ikarus: true,
+      lego: true,
+      content: [1, 112, 130, 2],
+    } as InputParameters
+    const basePath = path.join('Ninja', 'testPatch')
+
+    await files.writeContentSrcFiles(patch)
+    expect(writeContentSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(4)
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      path.join(basePath, 'Content_G1.src'),
+      'Ikarus\nLeGo\n\n// LIST YOUR FILES HERE\n\nContent\\init.d\n',
+      'ascii',
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      path.join(basePath, 'Content_G112.src'),
+      'Ikarus\nLeGo\n\n// LIST YOUR FILES HERE\n\nContent\\init.d\n',
+      'ascii',
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      path.join(basePath, 'Content_G130.src'),
+      'Ikarus\nLeGo\n\n// LIST YOUR FILES HERE\n\nContent\\init.d\n',
+      'ascii',
+    )
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      path.join(basePath, 'Content_G2.src'),
+      'Ikarus\nLeGo\n\n// LIST YOUR FILES HERE\n\nContent\\init.d\n',
+      'ascii',
+    )
+  })
+
+  test('should write only one content source file with ikarus', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsContentScripts: true,
+      ikarus: true,
+      lego: false,
+      content: [1],
+    } as InputParameters
+    const basePath = path.join('Ninja', 'testPatch')
+
+    await files.writeContentSrcFiles(patch)
+    expect(writeContentSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(1)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join(basePath, 'Content_G1.src'), 'Ikarus\n\n// LIST YOUR FILES HERE\n', 'ascii')
+  })
+
+  test('should write only one content source file without ikarus and lego', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsContentScripts: true,
+      ikarus: false,
+      lego: false,
+      content: [2],
+    } as InputParameters
+    const basePath = path.join('Ninja', 'testPatch')
+
+    await files.writeContentSrcFiles(patch)
+    expect(writeContentSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(1)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join(basePath, 'Content_G2.src'), '\n// LIST YOUR FILES HERE\n', 'ascii')
+  })
+
+  test('should write no content source file', async () => {
+    const emptyContent: number[] = []
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsContentScripts: true,
+      ikarus: false,
+      lego: false,
+      content: emptyContent,
+    } as InputParameters
+
+    await files.writeContentSrcFiles(patch)
+    expect(writeContentSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+
+  test('should not do anything', async () => {
+    const patch: InputParameters = {
+      needsContentScripts: false,
+    } as InputParameters
+
+    await files.writeContentSrcFiles(patch)
+    expect(writeContentSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeInitialization', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write menu initialization with LeGo', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: true,
+      initMenu: true,
+      initContent: false,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Menu initialization function called by Ninja every time a menu is opened
+ */
+func void Ninja_testPatch_Menu(var int menuPtr) {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write content initialization with LeGo', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: true,
+      initMenu: false,
+      initContent: true,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Initialization function called by Ninja after "Init_Global" (G2) / "Init_<Levelname>" (G1)
+ */
+func void Ninja_testPatch_Init() {
+    LeGo_MergeFlags( /* DESIRED LEGO PACKAGES */ );
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write menu initialization with Ikarus', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: false,
+      initMenu: true,
+      initContent: false,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Menu initialization function called by Ninja every time a menu is opened
+ */
+func void Ninja_testPatch_Menu(var int menuPtr) {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write content initialization with Ikarus', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: false,
+      initMenu: false,
+      initContent: true,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Initialization function called by Ninja after "Init_Global" (G2) / "Init_<Levelname>" (G1)
+ */
+func void Ninja_testPatch_Init() {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write menu and content initialization with LeGo', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: true,
+      initMenu: true,
+      initContent: true,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Menu initialization function called by Ninja every time a menu is opened
+ */
+func void Ninja_testPatch_Menu(var int menuPtr) {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+
+/*
+ * Initialization function called by Ninja after "Init_Global" (G2) / "Init_<Levelname>" (G1)
+ */
+func void Ninja_testPatch_Init() {
+    LeGo_MergeFlags( /* DESIRED LEGO PACKAGES */ );
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write menu and content initialization with Ikarus', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: true,
+      lego: false,
+      initMenu: true,
+      initContent: true,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Menu initialization function called by Ninja every time a menu is opened
+ */
+func void Ninja_testPatch_Menu(var int menuPtr) {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+
+/*
+ * Initialization function called by Ninja after "Init_Global" (G2) / "Init_<Levelname>" (G1)
+ */
+func void Ninja_testPatch_Init() {
+    MEM_InitAll();
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should write menu and content initialization without Ikarus and LeGo', async () => {
+    const patch: InputParameters = {
+      needsInit: true,
+      ikarus: false,
+      lego: false,
+      initMenu: true,
+      initContent: true,
+      name: 'testPatch',
+    } as InputParameters
+
+    const expectedContent = `/*
+ * Menu initialization function called by Ninja every time a menu is opened
+ */
+func void Ninja_testPatch_Menu(var int menuPtr) {
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+
+/*
+ * Initialization function called by Ninja after "Init_Global" (G2) / "Init_<Levelname>" (G1)
+ */
+func void Ninja_testPatch_Init() {
+
+    // WRITE YOUR INITIALIZATIONS HERE
+
+};
+`
+
+    await files.writeInitialization(patch)
+    expect(writeInitializationMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Content', 'init.d'), expectedContent)
+  })
+
+  test('should not write initialization', async () => {
+    const patch: InputParameters = {
+      needsInit: false,
+    } as InputParameters
+
+    await files.writeInitialization(patch)
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeSrcFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write all non-content source files without suffixes', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: true,
+      menu: [1, 112, 130, 2],
+      pfx: [1, 112, 130, 2],
+      vfx: [1, 112, 130, 2],
+      sfx: [1, 112, 130, 2],
+      music: [1, 112, 130, 2],
+      fight: [1, 112, 130, 2],
+      camera: [1, 112, 130, 2],
+    } as InputParameters
+
+    await files.writeSrcFiles(patch)
+    expect(writeSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(7)
+    for (const name of ['Menu', 'Pfx', 'Vfx', 'Sfx', 'Music', 'Fight', 'Camera'])
+      expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', `${name}.src`), '\n')
+  })
+
+  test('should write some non-content source files with suffixes', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: true,
+      menu: [1],
+      pfx: [112],
+      vfx: [130],
+      sfx: [2],
+      music: [1, 112, 130],
+      fight: [112, 130, 2],
+      camera: [1, 130],
+    } as InputParameters
+
+    await files.writeSrcFiles(patch)
+    expect(writeSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(12)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Menu_G1.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Pfx_G112.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Vfx_G130.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Sfx_G2.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Music_G1.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Music_G112.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Music_G130.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Fight_G112.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Fight_G130.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Fight_G2.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Camera_G1.src'), '\n')
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Camera_G130.src'), '\n')
+  })
+
+  test('should not write any non-content source files', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: false,
+    } as InputParameters
+
+    await files.writeSrcFiles(patch)
+    expect(writeSrcFilesMock).toHaveReturned()
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeOuFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write output unit files for two versions', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      ou: [112, 130],
+    } as InputParameters
+
+    await files.writeOuFiles(patch)
+    expect(writeOuFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(2)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'OU_G112.csl'), expect.any(String))
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'OU_G130.csl'), expect.any(String))
+  })
+
+  test('should write a single output unit file', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      ou: [1, 112, 130, 2],
+    } as InputParameters
+
+    await files.writeOuFiles(patch)
+    expect(writeOuFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(1)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'OU.csl'), expect.any(String))
+  })
+
+  test('should write no output unit file', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      ou: [] as number[],
+    } as InputParameters
+
+    await files.writeOuFiles(patch)
+    expect(writeOuFilesMock).toHaveReturned()
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeAnimFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write animation files for two versions', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      anim: [112, 130],
+    } as InputParameters
+
+    await files.writeAnimFiles(patch)
+    expect(writeAnimFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(2)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Anims_Humans_G112.mds'), expect.any(String))
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Anims_Humans_G130.mds'), expect.any(String))
+  })
+
+  test('should write a single animation file', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      anim: [1, 112, 130, 2],
+    } as InputParameters
+
+    await files.writeAnimFiles(patch)
+    expect(writeAnimFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(1)
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join('Ninja', 'testPatch', 'Anims_Humans.mds'), expect.any(String))
+  })
+
+  test('should write no animation file', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      anim: [] as number[],
+    } as InputParameters
+
+    await files.writeAnimFiles(patch)
+    expect(writeAnimFilesMock).toHaveReturned()
+    expect(fs.writeFile).not.toHaveBeenCalled()
+  })
+})
+
+describe('writeVmScript', () => {
+  test('should write the VM script', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      description: 'Test patch description',
+    } as InputParameters
+
+    await files.writeVmScript(patch)
+    expect(writeVmScriptMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      `${patch.name}.vm`,
+      expect.stringContaining(`[BEGINVDF]\nComment=${patch.description}\nBaseDir=.\\\nVDFName=.\\${patch.name}.vdf`),
+    )
+  })
+})
+
+describe('writeDotFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write all dot files', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      description: 'Test patch description',
+      needsNinja: true,
+    } as InputParameters
+
+    await files.writeDotFiles(patch)
+    expect(writeDotFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(6)
+    expect(fs.writeFile).toHaveBeenCalledWith('.validator.yml', expect.stringContaining('prefix:\nignore-declaration:\nignore-resource:'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitignore', expect.stringContaining('*.vdf'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitattributes', expect.stringContaining('*.[dD] text working-tree-encoding=CP1252'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/dependabot.yml', expect.stringContaining('package-ecosystem'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/release.yml', expect.stringContaining('dependabot'))
+    expect(fs.writeFile).toHaveBeenCalledWith('tool.cfg', expect.stringContaining('Required="314"'))
+  })
+
+  test('should write all dot files including toolkit spine dependency', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      description: 'Test patch description',
+      needsNinja: true,
+      ikarus: true,
+    } as InputParameters
+
+    await files.writeDotFiles(patch)
+    expect(writeDotFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(6)
+    expect(fs.writeFile).toHaveBeenCalledWith('.validator.yml', expect.stringContaining('prefix:\nignore-declaration:\nignore-resource:'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitignore', expect.stringContaining('*.vdf'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitattributes', expect.stringContaining('*.[dD] text working-tree-encoding=CP1252'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/dependabot.yml', expect.stringContaining('package-ecosystem'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/release.yml', expect.stringContaining('dependabot'))
+    expect(fs.writeFile).toHaveBeenCalledWith('tool.cfg', expect.stringContaining('Required="314,613"'))
+  })
+
+  test('should write all dot files but the spine dependency', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      description: 'Test patch description',
+      needsNinja: false,
+    } as InputParameters
+
+    await files.writeDotFiles(patch)
+    expect(writeDotFilesMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledTimes(5)
+    expect(fs.writeFile).toHaveBeenCalledWith('.validator.yml', expect.stringContaining('prefix:\nignore-declaration:\nignore-resource:'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitignore', expect.stringContaining('*.vdf'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.gitattributes', expect.stringContaining('*.[dD] text working-tree-encoding=CP1252'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/dependabot.yml', expect.stringContaining('package-ecosystem'))
+    expect(fs.writeFile).toHaveBeenCalledWith('.github/release.yml', expect.stringContaining('dependabot'))
+    expect(fs.writeFile).not.toHaveBeenCalledWith('tool.cfg', expect.any(String))
+  })
+})
+
+describe('writeReadme', () => {
+  test('should write the README file with extra badges', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: true,
+      needsNinja: true,
+      needsVersions: [1, 112, 130, 2],
+      repo: 'user/repo',
+      url: 'https://github.com/user/repo',
+      description: 'Test patch description',
+    } as InputParameters
+    const templateRepo = 'template/repo'
+    const templateRepoUrl = 'https://github.com/template/repo'
+
+    await files.writeReadme(patch, templateRepo, templateRepoUrl)
+    expect(writeReadmeMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'README.md',
+      `# testPatch
+
+[![Scripts](https://github.com/user/repo/actions/workflows/scripts.yml/badge.svg)](https://github.com/user/repo/actions/workflows/scripts.yml)
+[![Validation](https://github.com/user/repo/actions/workflows/validation.yml/badge.svg)](https://github.com/user/repo/actions/workflows/validation.yml)
+[![Build](https://github.com/user/repo/actions/workflows/build.yml/badge.svg)](https://github.com/user/repo/actions/workflows/build.yml)
+[![GitHub release](https://img.shields.io/github/v/release/user/repo.svg)](https://github.com/user/repo/releases/latest)  
+<!-- [![World of Gothic](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/wog.svg)](https://www.worldofgothic.de/dl/download_XXXX.htm) -->
+<!-- [![Spine](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/spine.svg)](https://clockwork-origins.com/spine) -->
+<!-- [![Steam Gothic 1](https://img.shields.io/badge/steam-Gothic%201-2a3f5a?logo=steam&labelColor=1b2838)](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX) -->
+<!-- [![Steam Gothic 2](https://img.shields.io/badge/steam-Gothic%202-2a3f5a?logo=steam&labelColor=1b2838)](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX) -->
+
+Test patch description
+
+This is a modular modification (a.k.a. patch or add-on) that can be installed and uninstalled at any time and is virtually compatible with any modification.
+It supports <kbd>Gothic 1</kbd>, <kbd>Gothic Sequel</kbd>, <kbd>Gothic II (Classic)</kbd> and <kbd>Gothic II: NotR</kbd>.
+
+<sup>Generated from [${templateRepo}](${templateRepoUrl}).</sup>
+
+## Installation
+
+1. Download the latest release of \`testPatch.vdf\` from the [releases page](https://github.com/user/repo/releases/latest).
+
+2. Copy the file \`testPatch.vdf\` to \`[Gothic]\\Data\\\`. To uninstall, remove the file again.
+
+<!--
+The patch is also available on
+- [World of Gothic](https://www.worldofgothic.de/dl/download_XXXX.htm) | [Forum thread](https://forum.worldofplayers.de/forum/threads/XXXXXXX)
+- [Spine Mod-Manager](https://clockwork-origins.com/spine/)
+- [Steam Workshop Gothic 1](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX)
+- [Steam Workshop Gothic 2](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX)
+-->
+
+### Requirements
+
+<table><thead><tr><th>Gothic</th><th>Gothic Sequel</th><th>Gothic II (Classic)</th><th>Gothic II: NotR</th></tr></thead>
+<tbody><tr><td><a href="https://www.worldofgothic.de/dl/download_34.htm">Version 1.08k_mod</a></td><td>Version 1.12f</td><td><a href="https://www.worldofgothic.de/dl/download_278.htm">Report version 1.30.0.0</a></td><td><a href="https://www.worldofgothic.de/dl/download_278.htm">Report version 2.6.0.0</a></td></tr></tbody>
+<tbody><tr><td colspan="4" align="center"><a href="https://github.com/szapp/Ninja">Ninja 4</a> or higher</td></tr></tbody>
+</table>
+
+<!--
+
+If you are interested in writing your own patch, please do not copy this patch!
+Instead refer to the PATCH TEMPLATE to build a foundation that is customized to your needs!
+The patch template can found at ${templateRepoUrl}.
+
+-->
+`,
+    )
+  })
+
+  test('should write the README file without extra badges', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: false,
+      needsNinja: false,
+      needsVersions: [112],
+      repo: 'user/repo',
+      url: 'https://github.com/user/repo',
+      description: 'Test patch description',
+    } as InputParameters
+    const templateRepo = 'template/repo'
+    const templateRepoUrl = 'https://github.com/template/repo'
+
+    await files.writeReadme(patch, templateRepo, templateRepoUrl)
+    expect(writeReadmeMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'README.md',
+      `# testPatch
+
+[![Build](https://github.com/user/repo/actions/workflows/build.yml/badge.svg)](https://github.com/user/repo/actions/workflows/build.yml)
+[![GitHub release](https://img.shields.io/github/v/release/user/repo.svg)](https://github.com/user/repo/releases/latest)  
+<!-- [![World of Gothic](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/wog.svg)](https://www.worldofgothic.de/dl/download_XXXX.htm) -->
+<!-- [![Spine](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/spine.svg)](https://clockwork-origins.com/spine) -->
+
+Test patch description
+
+This is a modular modification (a.k.a. patch or add-on) that can be installed and uninstalled at any time and is virtually compatible with any modification.
+It supports <kbd>Gothic Sequel</kbd> only.
+
+<sup>Generated from [${templateRepo}](${templateRepoUrl}).</sup>
+
+## Installation
+
+1. Download the latest release of \`testPatch.vdf\` from the [releases page](https://github.com/user/repo/releases/latest).
+
+2. Copy the file \`testPatch.vdf\` to \`[Gothic]\\Data\\\`. To uninstall, remove the file again.
+
+<!--
+The patch is also available on
+- [World of Gothic](https://www.worldofgothic.de/dl/download_XXXX.htm) | [Forum thread](https://forum.worldofplayers.de/forum/threads/XXXXXXX)
+- [Spine Mod-Manager](https://clockwork-origins.com/spine/)
+-->
+
+
+
+<!--
+
+If you are interested in writing your own patch, please do not copy this patch!
+Instead refer to the PATCH TEMPLATE to build a foundation that is customized to your needs!
+The patch template can found at ${templateRepoUrl}.
+
+-->
+`,
+    )
+  })
+
+  test('should write the README file with a single steam badge', async () => {
+    const patch: InputParameters = {
+      name: 'testPatch',
+      needsScripts: true,
+      needsNinja: true,
+      needsVersions: [1],
+      ikarus: true,
+      repo: 'user/repo',
+      url: 'https://github.com/user/repo',
+      description: 'Test patch description',
+    } as InputParameters
+    const templateRepo = 'template/repo'
+    const templateRepoUrl = 'https://github.com/template/repo'
+
+    await files.writeReadme(patch, templateRepo, templateRepoUrl)
+    expect(writeReadmeMock).toHaveReturned()
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      'README.md',
+      `# testPatch
+
+[![Scripts](https://github.com/user/repo/actions/workflows/scripts.yml/badge.svg)](https://github.com/user/repo/actions/workflows/scripts.yml)
+[![Validation](https://github.com/user/repo/actions/workflows/validation.yml/badge.svg)](https://github.com/user/repo/actions/workflows/validation.yml)
+[![Build](https://github.com/user/repo/actions/workflows/build.yml/badge.svg)](https://github.com/user/repo/actions/workflows/build.yml)
+[![GitHub release](https://img.shields.io/github/v/release/user/repo.svg)](https://github.com/user/repo/releases/latest)  
+<!-- [![World of Gothic](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/wog.svg)](https://www.worldofgothic.de/dl/download_XXXX.htm) -->
+<!-- [![Spine](https://raw.githubusercontent.com/${templateRepo}/main/.github/actions/initialization/badges/spine.svg)](https://clockwork-origins.com/spine) -->
+<!-- [![Steam workshop](https://img.shields.io/badge/steam-workshop-2a3f5a?logo=steam&labelColor=1b2838)](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX) -->
+
+Test patch description
+
+This is a modular modification (a.k.a. patch or add-on) that can be installed and uninstalled at any time and is virtually compatible with any modification.
+It supports <kbd>Gothic 1</kbd> only.
+
+<sup>Generated from [${templateRepo}](${templateRepoUrl}).</sup>
+
+## Installation
+
+1. Download the latest release of \`testPatch.vdf\` from the [releases page](https://github.com/user/repo/releases/latest).
+
+2. Copy the file \`testPatch.vdf\` to \`[Gothic]\\Data\\\`. To uninstall, remove the file again.
+
+<!--
+The patch is also available on
+- [World of Gothic](https://www.worldofgothic.de/dl/download_XXXX.htm) | [Forum thread](https://forum.worldofplayers.de/forum/threads/XXXXXXX)
+- [Spine Mod-Manager](https://clockwork-origins.com/spine/)
+- [Steam Workshop Gothic 1](https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXXX)
+-->
+
+### Requirements
+
+<table><thead><tr><th>Gothic</th></tr></thead>
+<tbody><tr><td><a href="https://www.worldofgothic.de/dl/download_34.htm">Version 1.08k_mod</a></td></tr></tbody>
+<tbody><tr><td colspan="1" align="center"><a href="https://github.com/szapp/Ninja">Ninja 4</a> or higher</td></tr></tbody>
+<tbody><tr><td colspan="1" align="center"><a href="https://github.com/szapp/Toolkit">Toolkit 16</a> or higher</td></tr></tbody>
+</table>
+
+<!--
+
+If you are interested in writing your own patch, please do not copy this patch!
+Instead refer to the PATCH TEMPLATE to build a foundation that is customized to your needs!
+The patch template can found at ${templateRepoUrl}.
+
+-->
+`,
+    )
+  })
+})
+
+describe('writeLicense', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should write the LICENSE file', async () => {
+    const patch: InputParameters = {
+      usernameFull: 'John Doe',
+    } as InputParameters
+    vi.spyOn(fs, 'readFile').mockImplementation(async (file) =>
+      (file as string).includes('GothicMOD-Lizenz.txt') ? 'Copyright (c) 20[jj] [Inhaber der ausschließlichen Nutzungsrechte].' : '',
+    )
+
+    await files.writeLicense(patch)
+    expect(writeLicenseMock).toHaveReturned()
+    expect(fs.readFile).toHaveBeenCalledTimes(2)
+    expect(fs.readFile).toHaveBeenCalledWith(path.join('.github', 'actions', 'initialization', 'licenses', 'GothicMOD-Lizenz.txt'), 'utf8')
+    expect(fs.readFile).toHaveBeenCalledWith(
+      path.join('.github', 'actions', 'initialization', 'licenses', 'GOTHIC_MOD_Development_Kit.txt'),
+      'utf8',
+    )
+    expect(fs.writeFile).toHaveBeenCalledTimes(1)
+    expect(fs.writeFile).toHaveBeenNthCalledWith(
+      1,
+      'LICENSE',
+      expect.stringContaining(`${new Date().getUTCFullYear()} ${patch.usernameFull}`),
+      'utf8',
+    )
+  })
+})
+
+describe('removeFiles', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  test('should remove dot-files except for scripts.yml', async () => {
+    const patch: InputParameters = {
+      needsScripts: true,
+    } as InputParameters
+
+    await files.removeFiles(patch)
+    expect(removeFilesMock).toHaveReturned()
+    expect(io.rmRF).toHaveBeenCalledTimes(4)
+    expect(io.rmRF).toHaveBeenCalledWith('.github/workflows/init.yml')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/ISSUE_TEMPLATE')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/FUNDING.yml')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/actions')
+    expect(io.rmRF).not.toHaveBeenCalledWith('.github/workflows/scripts.yml')
+  })
+
+  test('should remove dot-files including scripts.yml', async () => {
+    const patch: InputParameters = {
+      needsScripts: false,
+    } as InputParameters
+
+    await files.removeFiles(patch)
+    expect(removeFilesMock).toHaveReturned()
+    expect(io.rmRF).toHaveBeenCalledTimes(5)
+    expect(io.rmRF).toHaveBeenCalledWith('.github/workflows/init.yml')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/ISSUE_TEMPLATE')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/FUNDING.yml')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/actions')
+    expect(io.rmRF).toHaveBeenCalledWith('.github/workflows/scripts.yml')
+  })
+})
