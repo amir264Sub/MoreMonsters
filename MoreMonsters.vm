@@ -3,7 +3,8 @@ Comment=More monsters in Gothic 2 NotR
 BaseDir=.\
 VDFName=MoreMonsters.vdf
 [FILES]
-Ninja\MoreMonsters\*.*
+Ninja\MoreMonsters\Content_G2.src
+Ninja\MoreMonsters\MoreMonsters.d
 [EXCLUDE]
 [INCLUDES]
 [ENDVDF]
