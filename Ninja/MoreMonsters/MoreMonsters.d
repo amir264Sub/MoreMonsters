@@ -1,5 +1,5 @@
 // Extra copies per monster: 1 = x2 total, 2 = x3 total
-const int Patch_MoreMonsters_Copies = 2;
+const int Patch_MoreMonsters_Copies = 1;
 
 // One "done" flag per world, saved with the savegame
 var int Patch_MoreMonsters_Done[8];
