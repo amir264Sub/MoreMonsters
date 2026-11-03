@@ -13,6 +13,7 @@ func void Patch_MoreMonsters_Run() {
     var int n;
     var int copies;
     var int inst;
+    var int skipped;
     var string wp;
 
     if (!Hlp_IsValidNpc(hero)) { return; };
@@ -37,8 +38,11 @@ func void Patch_MoreMonsters_Run() {
         listPtr = node.next;
     end;
 
-    // Pass 2: spawn copies at the nearest waypoint of each monster
     n = MEM_ArraySize(arr);
+    Print(ConcatStrings("MoreMonsters found: ", IntToString(n)));
+
+    // Pass 2: spawn copies at the nearest waypoint of each monster
+    skipped = 0;
     i = 0;
     while (i < n);
         mmNpc = _^(MEM_ArrayRead(arr, i));
@@ -50,10 +54,13 @@ func void Patch_MoreMonsters_Run() {
                 Wld_InsertNpc(inst, wp);
                 copies += 1;
             end;
+        } else {
+            skipped += 1;
         };
         i += 1;
     end;
     MEM_ArrayFree(arr);
+    Print(ConcatStrings("MoreMonsters no waypoint: ", IntToString(skipped)));
 };
 
 func void Ninja_MoreMonsters_Init() {
